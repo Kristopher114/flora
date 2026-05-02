@@ -1,0 +1,1050 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Flora-Chloris Flowershop POS API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: products
+    description: Product management
+  - name: categories
+    description: Category management
+  - name: inventory
+    description: Inventory management
+  - name: orders
+    description: Order management
+  - name: reservations
+    description: Online reservation management
+  - name: auth
+    description: Authentication
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new customer account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Account created and logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Username already taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/profile:
+    put:
+      operationId: updateProfile
+      tags: [auth]
+      summary: Update current user's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not authenticated or wrong current password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+      responses:
+        "201":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List all products
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: available
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductRequest"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductRequest"
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /inventory:
+    get:
+      operationId: listInventory
+      tags: [inventory]
+      summary: List all inventory items
+      responses:
+        "200":
+          description: List of inventory items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryItem"
+
+  /inventory/{productId}:
+    put:
+      operationId: updateInventory
+      tags: [inventory]
+      summary: Update stock for a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInventoryRequest"
+      responses:
+        "200":
+          description: Inventory updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItem"
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List all orders
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, completed, cancelled]
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [walk_in, online]
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create an order (POS or online)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    put:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusRequest"
+      responses:
+        "200":
+          description: Order status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /reservations/my:
+    get:
+      operationId: getMyReservations
+      tags: [reservations]
+      summary: Get reservations for the currently logged-in user
+      responses:
+        "200":
+          description: List of current user's reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reservation"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /reservations:
+    get:
+      operationId: listReservations
+      tags: [reservations]
+      summary: List all reservations (admin only)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, confirmed, completed, cancelled]
+      responses:
+        "200":
+          description: List of reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reservation"
+    post:
+      operationId: createReservation
+      tags: [reservations]
+      summary: Create a reservation (online)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReservationRequest"
+      responses:
+        "201":
+          description: Reservation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+
+  /reservations/{id}:
+    get:
+      operationId: getReservation
+      tags: [reservations]
+      summary: Get reservation details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reservation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+    put:
+      operationId: updateReservationStatus
+      tags: [reservations]
+      summary: Update reservation status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReservationStatusRequest"
+      responses:
+        "200":
+          description: Reservation updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [orders]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        currentPassword:
+          type: string
+          nullable: true
+        newPassword:
+          type: string
+          nullable: true
+
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+      required:
+        - username
+        - password
+        - name
+
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        message:
+          type: string
+      required:
+        - user
+        - message
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+          enum: [admin, cashier, customer]
+        name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+      required:
+        - id
+        - username
+        - role
+        - name
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        emoji:
+          type: string
+          nullable: true
+      required:
+        - id
+        - name
+
+    CreateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        emoji:
+          type: string
+          nullable: true
+      required:
+        - name
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+        purchaseCost:
+          type: number
+          nullable: true
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+          nullable: true
+        stockQuantity:
+          type: integer
+        isAvailable:
+          type: boolean
+        imageUrl:
+          type: string
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+      required:
+        - id
+        - name
+        - price
+        - categoryId
+        - stockQuantity
+        - isAvailable
+
+    CreateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+        purchaseCost:
+          type: number
+          nullable: true
+        categoryId:
+          type: integer
+        stockQuantity:
+          type: integer
+        imageUrl:
+          type: string
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+        isAvailable:
+          type: boolean
+      required:
+        - name
+        - price
+        - categoryId
+        - stockQuantity
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+        purchaseCost:
+          type: number
+          nullable: true
+        categoryId:
+          type: integer
+        stockQuantity:
+          type: integer
+        isAvailable:
+          type: boolean
+        imageUrl:
+          type: string
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+
+    InventoryItem:
+      type: object
+      properties:
+        productId:
+          type: integer
+        productName:
+          type: string
+        categoryName:
+          type: string
+          nullable: true
+        stockQuantity:
+          type: integer
+        isAvailable:
+          type: boolean
+        price:
+          type: number
+        unit:
+          type: string
+          nullable: true
+        imageUrl:
+          type: string
+          nullable: true
+      required:
+        - productId
+        - productName
+        - stockQuantity
+        - isAvailable
+        - price
+
+    UpdateInventoryRequest:
+      type: object
+      properties:
+        stockQuantity:
+          type: integer
+        isAvailable:
+          type: boolean
+      required:
+        - stockQuantity
+
+    OrderItem:
+      type: object
+      properties:
+        productId:
+          type: integer
+        productName:
+          type: string
+          nullable: true
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        subtotal:
+          type: number
+      required:
+        - productId
+        - quantity
+        - unitPrice
+        - subtotal
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderNumber:
+          type: string
+        type:
+          type: string
+          enum: [walk_in, online]
+        status:
+          type: string
+          enum: [pending, completed, cancelled]
+        customerName:
+          type: string
+          nullable: true
+        customerPhone:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        subtotal:
+          type: number
+        total:
+          type: number
+        paymentMethod:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - orderNumber
+        - type
+        - status
+        - items
+        - subtotal
+        - total
+        - createdAt
+
+    CreateOrderRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [walk_in, online]
+        customerName:
+          type: string
+          nullable: true
+        customerPhone:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: integer
+              quantity:
+                type: integer
+            required:
+              - productId
+              - quantity
+        paymentMethod:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+      required:
+        - type
+        - items
+
+    UpdateOrderStatusRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, completed, cancelled]
+        paymentMethod:
+          type: string
+          nullable: true
+      required:
+        - status
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: integer
+        reservationNumber:
+          type: string
+        userId:
+          type: integer
+          nullable: true
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        customerEmail:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        pickupDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, confirmed, completed, cancelled]
+        total:
+          type: number
+        notes:
+          type: string
+          nullable: true
+        paymentMethod:
+          type: string
+          enum: [cod, gcash]
+          nullable: true
+        fulfillmentType:
+          type: string
+          enum: [pickup, delivery]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - reservationNumber
+        - customerName
+        - customerPhone
+        - items
+        - pickupDate
+        - status
+        - total
+        - fulfillmentType
+        - createdAt
+
+    CreateReservationRequest:
+      type: object
+      properties:
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        customerEmail:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: integer
+              quantity:
+                type: integer
+            required:
+              - productId
+              - quantity
+        pickupDate:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          nullable: true
+        paymentMethod:
+          type: string
+          enum: [cod, gcash]
+          nullable: true
+        fulfillmentType:
+          type: string
+          enum: [pickup, delivery]
+      required:
+        - customerName
+        - customerPhone
+        - items
+        - pickupDate
+
+    UpdateReservationStatusRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, completed, cancelled]
+      required:
+        - status
+
+    DashboardStats:
+      type: object
+      properties:
+        totalSalesToday:
+          type: number
+        totalOrdersToday:
+          type: integer
+        pendingReservations:
+          type: integer
+        lowStockItems:
+          type: integer
+        totalSalesThisMonth:
+          type: number
+        totalOrdersThisMonth:
+          type: integer
+      required:
+        - totalSalesToday
+        - totalOrdersToday
+        - pendingReservations
+        - lowStockItems
+        - totalSalesThisMonth
+        - totalOrdersThisMonth

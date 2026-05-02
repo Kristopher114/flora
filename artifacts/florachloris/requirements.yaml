@@ -1,0 +1,23 @@
+packages:
+  "framer-motion": "For elegant page transitions and modal animations"
+  "recharts": "Admin dashboard analytics and statistics charts"
+  "date-fns": "For formatting dates in reservations and orders"
+  "clsx": "Utility for constructing className conditionally"
+  "tailwind-merge": "Utility for merging tailwind classes safely"
+  "lucide-react": "Beautiful consistent icons"
+
+images:
+  - path: "artifacts/florachloris/public/images/hero-floral.png"
+    description: "A soft, romantic, slightly blurred background featuring beautiful pink peonies, roses, and subtle sage green eucalyptus leaves, elegant boutique aesthetic"
+    aspect_ratio: "16:9"
+  - path: "artifacts/florachloris/public/images/logo-icon.png"
+    description: "A minimalist, elegant line-art icon of a blooming lotus or rose in soft pink and gold tones, transparent background"
+    aspect_ratio: "1:1"
+  - path: "artifacts/florachloris/public/images/placeholder-bouquet.png"
+    description: "A beautifully arranged bouquet of fresh flowers with soft pink and white blooms, wrapped in elegant kraft paper, soft studio lighting"
+    aspect_ratio: "1:1"
+
+notes:
+  - Using React Context for Cart and Auth state management
+  - API requests are handled by pre-generated hooks in @workspace/api-client-react
+  - Defaulting to a warm romantic floral theme (rose pinks, sage greens, warm creams)
